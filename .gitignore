@@ -1,0 +1,17 @@
+# Node
+node_modules/
+dist/
+npm-debug.log*
+yarn-error.log*
+
+# Local build
+*.tsbuildinfo
+
+# AE witness + logs (kept local, uploaded via CI)
+.ae/
+!/.ae/.gitkeep   # keep folder visible in repo
+
+# OS/Editor noise
+.DS_Store
+Thumbs.db
+*.swp
