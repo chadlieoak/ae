@@ -1,0 +1,46 @@
+name: ae-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  run-demos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci || npm i
+
+      - name: Build
+        run: npm run build
+
+      - name: Run demos (capture logs)
+        shell: bash
+        run: |
+          mkdir -p .ae
+          set +e
+          node dist/demo.js           2>&1 | tee -a .ae/ci.log
+          node dist/pipeline_demo.js  2>&1 | tee -a .ae/ci.log
+          node dist/tm_demo.js        2>&1 | tee -a .ae/ci.log
+          # failing demo is expected to throw; keep job green
+          node dist/failing_demo.js   2>&1 | tee -a .ae/ci.log || true
+          set -e
+
+      - name: Upload witnesses + logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ae-witnesses
+          path: |
+            .ae/witnesses.jsonl
+            .ae/ci.log
+          if-no-files-found: warn

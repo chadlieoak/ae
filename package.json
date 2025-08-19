@@ -1,0 +1,16 @@
+{
+  "name": "ae-ci-repo",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "demo": "npm run build && node dist/demo.js",
+    "pipeline": "npm run build && node dist/pipeline_demo.js",
+    "tm": "npm run build && node dist/tm_demo.js",
+    "fail": "npm run build && node dist/failing_demo.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
