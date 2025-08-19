@@ -21,17 +21,20 @@ function preflightCharge(b: BuildOk): Preflight {
   return { ...b, risk }
 }
 
-@ae({ type: 'Payment\\Refund', grade: 'IO' })
-async function executeCharge(p: Preflight) {
-  const providerResp = { provider: 'stub-pay', status: 'succeeded', id: 'pay_abc123' }
-  return { kind: 'Payment', id: providerResp.id, evidence: providerResp }
+class Executor {
+  @ae({ type: 'Payment\\Refund', grade: 'IO' })
+  async executeCharge(p: Preflight) {
+    const providerResp = { provider: 'stub-pay', status: 'succeeded', id: 'pay_abc123' }
+    return { kind: 'Payment', id: providerResp.id, evidence: providerResp }
+  }
 }
 
 export async function chargePipeline(input: { amount: number, currency: string, customerId: string }) {
   const plan = planCharge(input)
   const specialized = buildCharge(plan)
   const preflight = preflightCharge(specialized)
-  const payment = await executeCharge(preflight)
+  const exec = new Executor()
+  const payment = await exec.executeCharge(preflight)
   return payment
 }
 
