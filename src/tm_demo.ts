@@ -17,15 +17,15 @@ function blankTape(): Tape { return { left: [], head: 0, right: [] } }
 
 function moveL(t: Tape): Tape {
   const left = t.left.slice(0, -1)
-  const h: Sym = (t.left.length ? t.left[t.left.length - 1] : 0) as Sym
-  const right: Sym[] = [t.head, ...(t.right.length ? t.right : [0])]
+  const h = (t.left.length ? t.left[t.left.length - 1] : 0) as Sym
+  const right = [t.head, ...(t.right.length ? t.right : [0])] as Sym[]
   return { left, head: h, right }
 }
 
 function moveR(t: Tape): Tape {
   const left = [...t.left, t.head]
-  const h: Sym = (t.right.length ? t.right[0] : 0) as Sym
-  const right: Sym[] = (t.right.length ? t.right.slice(1) : []) as Sym[]
+  const h = (t.right.length ? t.right[0] : 0) as Sym
+  const right = (t.right.length ? t.right.slice(1) : []) as Sym[]
   return { left, head: h, right }
 }
 
@@ -62,13 +62,15 @@ function runToFixpoint(tm: TM, fuel = 20000): RunResult {
   return { kind: 'Loop', steps: cfg.steps, reason: 'fuel-exhausted' }
 }
 
-@ae({ type: 'Halts\\Loop', grade: 'IO' })
-async function runTM_IO(tm: TM) {
-  const res = runToFixpoint(tm, 20000)
-  if (res.kind === 'Loop') {
-    throw new Error(`[æ] Type violation: machine loops (${res.reason}) after ${res.steps} steps`)
+class Runner {
+  @ae({ type: 'Halts\\Loop', grade: 'IO' })
+  async runTM_IO(tm: TM) {
+    const res = runToFixpoint(tm, 20000)
+    if (res.kind === 'Loop') {
+      throw new Error(`[æ] Type violation: machine loops (${res.reason}) after ${res.steps} steps`)
+    }
+    return res
   }
-  return res
 }
 
 const TM_HALTS: TM = {
@@ -92,13 +94,14 @@ const TM_LOOPS: TM = {
 }
 
 async function main() {
+  const runner = new Runner()
   console.log('TM that halts…')
-  const h = await runTM_IO(TM_HALTS)
+  const h = await runner.runTM_IO(TM_HALTS)
   console.log('Result:', h)
 
   console.log('\nTM that loops… (should be rejected)')
   try {
-    const l = await runTM_IO(TM_LOOPS)
+    const l = await runner.runTM_IO(TM_LOOPS)
     console.log('Unexpected:', l)
   } catch (e: any) {
     console.log('Rejected as expected:', e.message)
