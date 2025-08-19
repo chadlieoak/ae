@@ -2,6 +2,9 @@
 
 This template is ready for GitHub Actions. It runs the demos, writes Witnesses, and uploads them as CI artifacts.
 
+[![ae-ci](https://github.com/chadlieoak/ae/actions/workflows/ae-ci.yml/badge.svg)](https://github.com/<you>/<repo>/actions/workflows/ae-ci.yml)
+
+
 ## Use
 
 ```bash
