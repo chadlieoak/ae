@@ -7,7 +7,6 @@ on:
 jobs:
   run-demos:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,8 +14,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
-          cache: 'npm'
+          node-version: 'lts/*'   # ← no cache setting
 
       - name: Install
         run: npm install
@@ -29,15 +27,15 @@ jobs:
         run: |
           set -e
           mkdir -p .ae
-          : > .ae/ci.log   # ensure file exists
+          : > .ae/ci.log
           echo "=== Node version ==="       | tee -a .ae/ci.log
-          node -v                             | tee -a .ae/ci.log
+          node -v                           | tee -a .ae/ci.log
           echo "=== npm version ==="        | tee -a .ae/ci.log
-          npm -v                              | tee -a .ae/ci.log
+          npm -v                            | tee -a .ae/ci.log
           echo "=== Dist listing ==="       | tee -a .ae/ci.log
-          ls -la dist                         | tee -a .ae/ci.log
+          ls -la dist                       | tee -a .ae/ci.log
 
-          set +e  # allow failures but keep logging
+          set +e
           echo "=== demo ==="               | tee -a .ae/ci.log
           node dist/demo.js                 2>&1 | tee -a .ae/ci.log
           echo "=== pipeline ==="           | tee -a .ae/ci.log
@@ -48,7 +46,7 @@ jobs:
           node dist/failing_demo.js         2>&1 | tee -a .ae/ci.log || true
           set -e
 
-          # Guarantee witnesses file exists even if none were written
+          # ensure artifact files exist
           touch .ae/witnesses.jsonl
 
       - name: Upload witnesses + logs
