@@ -7,6 +7,7 @@ on:
 jobs:
   run-demos:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,22 +19,37 @@ jobs:
           cache: 'npm'
 
       - name: Install
-        run: npm ci || npm i
+        run: npm install
 
       - name: Build
         run: npm run build
 
-      - name: Run demos (capture logs)
+      - name: Run demos (capture logs; keep job green)
         shell: bash
         run: |
-          mkdir -p .ae
-          set +e
-          node dist/demo.js           2>&1 | tee -a .ae/ci.log
-          node dist/pipeline_demo.js  2>&1 | tee -a .ae/ci.log
-          node dist/tm_demo.js        2>&1 | tee -a .ae/ci.log
-          # failing demo is expected to throw; keep job green
-          node dist/failing_demo.js   2>&1 | tee -a .ae/ci.log || true
           set -e
+          mkdir -p .ae
+          : > .ae/ci.log   # ensure file exists
+          echo "=== Node version ==="       | tee -a .ae/ci.log
+          node -v                             | tee -a .ae/ci.log
+          echo "=== npm version ==="        | tee -a .ae/ci.log
+          npm -v                              | tee -a .ae/ci.log
+          echo "=== Dist listing ==="       | tee -a .ae/ci.log
+          ls -la dist                         | tee -a .ae/ci.log
+
+          set +e  # allow failures but keep logging
+          echo "=== demo ==="               | tee -a .ae/ci.log
+          node dist/demo.js                 2>&1 | tee -a .ae/ci.log
+          echo "=== pipeline ==="           | tee -a .ae/ci.log
+          node dist/pipeline_demo.js        2>&1 | tee -a .ae/ci.log
+          echo "=== tm ==="                 | tee -a .ae/ci.log
+          node dist/tm_demo.js              2>&1 | tee -a .ae/ci.log
+          echo "=== failing_demo (expected error) ===" | tee -a .ae/ci.log
+          node dist/failing_demo.js         2>&1 | tee -a .ae/ci.log || true
+          set -e
+
+          # Guarantee witnesses file exists even if none were written
+          touch .ae/witnesses.jsonl
 
       - name: Upload witnesses + logs
         if: always()
