@@ -50,6 +50,27 @@ jobs:
           # ensure artifact files exist even if no witnesses were emitted
           touch .ae/witnesses.jsonl
 
+      - name: Zip AE logs with run metadata
+        if: always()
+        run: |
+          mkdir -p .ae
+          RUN_ID="${{ github.run_id }}"
+          SHA="${{ github.sha }}"
+          BRANCH="${{ github.ref_name }}"
+          TS="$(date -u +'%Y-%m-%dT%H-%M-%SZ')"
+          ZIP=".ae/ae-logs_${BRANCH}_${RUN_ID}_${SHA}_${TS}.zip"
+          (cd .ae && zip -r "$(basename "$ZIP")" witnesses.jsonl ci.log >/dev/null)
+          echo "ZIP_PATH=$ZIP" >> $GITHUB_ENV
+
+      - name: Upload ZIP to Google Drive
+        if: always()
+        uses: garygrossgarten/github-action-upload-google-drive@v1
+        with:
+          serviceAccountKey: ${{ secrets.GDRIVE_KEY }}
+          target: ${{ env.ZIP_PATH }}
+          parentFolderId: 1rqPXawh7ZPf7pH4FRstZZ6CH76BB8z-C
+
+
       - name: Upload AE logs
         if: always()
         uses: actions/upload-artifact@v4
